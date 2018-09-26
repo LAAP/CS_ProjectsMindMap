@@ -3,32 +3,41 @@
 <style>
 
 .links line {
-  stroke: #999;
+  stroke: rgba(45, 51, 54, 0.774);
   stroke-opacity: 0.6;
 }
 
 .nodes circle {
-  stroke: #fff;
-  stroke-width: 1.5px;
+  stroke: #20202054;
+  stroke-width: 3px;
+  opacity: 0.9;
+}
+  text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+
 }
 
 </style>
 <svg width="960" height="600"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
+var colorMap={1: "#e41a1c", 2: "#377eb8",3:"#4daf4a",4: "#ffff33",5: "#984ea3",6: "#ff7f00",7: "#a65628",8: "#1b9e77",9: "#e7298a",10: "#66a61e"}
+var title={1: "id"}
 
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 
 var color = d3.scaleOrdinal(d3.schemeCategory20);
-
+const forceX = d3.forceX(width / 2).strength(0.0015)
+const forceY = d3.forceY(height / 2).strength(0.0015)
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function(d) { return d.id; }))
-    .force("charge", d3.forceManyBody())
-    .force("center", d3.forceCenter(width / 2, height / 2));
+    .force("charge", d3.forceManyBody().strength(-500))
+    .force("center", d3.forceCenter(width / 2, height / 2))
 
-d3.json("miserables.json", function(error, graph) {
+d3.json("CS_ProjectsMaindMap.json", function(error, graph) {
   if (error) throw error;
 
   var link = svg.append("g")
@@ -44,14 +53,27 @@ d3.json("miserables.json", function(error, graph) {
     .data(graph.nodes)
     .enter().append("circle")
       .attr("r", function(d) { return 2*d.size; }) // Luis, aqui puedes jugar con la escala
-      .attr("fill", function(d) { return color(d.group); })
+      .attr("fill", function(d) { return colorMap[d.group]; })
+      
       .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
           .on("end", dragended));
 
   node.append("title")
-      .text(function(d) { return d.id; });
+      .text(function(d) { return d.id; })
+
+
+
+
+  /*node.append("title")
+      .text(function(d) { return d.data.name + "\n" + format(d.value); });
+
+  node.filter(function(d) { return !d.group; }).append("text")
+      .attr("dy", "0.3em")
+      .text(function(d) { return d.data.name.substring(0, d.r / 3); });
+
+/**/
 
   simulation
       .nodes(graph.nodes)
